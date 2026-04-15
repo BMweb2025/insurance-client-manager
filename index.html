@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>荐荐保险服务管家</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:#f0f2f5;color:#1f2937;min-height:100vh}
+
+/* 顶部导航 */
+.header{background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);color:#fff;padding:20px 16px 16px;position:sticky;top:0;z-index:100}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.header-title{font-size:20px;font-weight:700}
+.header-badge{background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:20px;font-size:12px}
+.header-sub{font-size:13px;opacity:0.85}
+
+/* 统计卡片 */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.stat-card{background:rgba(255,255,255,0.15);border-radius:12px;padding:12px 8px;text-align:center}
+.stat-num{font-size:26px;font-weight:700;display:block}
+.stat-label{font-size:11px;opacity:0.85;margin-top:2px}
+.stat-a .stat-num{color:#fbbf24}
+.stat-b .stat-num{color:#93c5fd}
+.stat-c .stat-num{color:#d1d5db}
+
+/* 功能入口 */
+.func-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px;background:#fff;margin-top:8px}
+.func-item{background:#f9fafb;border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s}
+.func-item:active{transform:scale(0.95);background:#f3f4f6}
+.func-icon{font-size:28px;display:block;margin-bottom:6px}
+.func-name{font-size:11px;color:#4b5563;font-weight:500}
+
+/* 搜索框 */
+.search-section{padding:0 16px 12px;background:#fff}
+.search-box{display:flex;align-items:center;background:#f3f4f6;border-radius:12px;padding:10px 14px;gap:8px}
+.search-box input{flex:1;border:none;background:transparent;outline:none;font-size:14px;color:#1f2937}
+.search-box input::placeholder{color:#9ca3af}
+.search-icon{color:#9ca3af;font-size:16px}
+
+/* 筛选标签 */
+.filter-row{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;background:#fff;margin-bottom:8px}
+.filter-tag{padding:6px 16px;border-radius:20px;font-size:13px;background:#f3f4f6;color:#6b7280;white-space:nowrap;border:2px solid transparent;cursor:pointer;transition:all .2s}
+.filter-tag.active{background:#eff6ff;color:#2563eb;border-color:#2563eb}
+.filter-tag:active{transform:scale(0.95)}
+
+/* 客户列表 */
+.client-list{padding:0 16px 100px}
+.client-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.client-info{display:flex;align-items:center;gap:10px}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.avatar.male{background:#dbeafe;color:#1d4ed8}
+.avatar.female{background:#fce7f3;color:#be185d}
+.client-name{font-size:16px;font-weight:600;color:#1f2937}
+.client-meta{font-size:12px;color:#9ca3af;margin-top:2px}
+.level-badge{padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600}
+.level-A{background:#fef3c7;color:#d97706}
+.level-B{background:#dbeafe;color:#2563eb}
+.level-C{background:#f3f4f6;color:#6b7280}
+
+.card-info{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.info-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#4b5563}
+.info-icon{font-size:14px;opacity:0.6}
+
+.card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tag{padding:4px 10px;background:#f3f4f6;color:#6b7280;border-radius:8px;font-size:11px}
+.tag.need{background:#fee2e2;color:#dc2626}
+.tag.source{background:#dcfce7;color:#16a34a}
+
+.card-actions{display:flex;gap:8px}
+.action-btn{flex:1;padding:10px 0;border-radius:10px;font-size:13px;text-align:center;border:none;cursor:pointer;transition:all .2s}
+.action-btn:active{transform:scale(0.96)}
+.btn-call{background:#dcfce7;color:#16a34a}
+.btn-nav{background:#dbeafe;color:#2563eb}
+.btn-detail{background:#f3f4f6;color:#4b5563}
+
+/* 客户总数提示 */
+.list-header{display:flex;justify-content:space-between;align-items:center;padding:12px 0 8px;font-size:13px;color:#6b7280}
+.count-tag{background:#eff6ff;color:#2563eb;padding:2px 10px;border-radius:10px;font-weight:500}
+
+/* 空状态 */
+.empty-state{text-align:center;padding:60px 20px;color:#9ca3af}
+.empty-icon{font-size:60px;margin-bottom:16px}
+.empty-text{font-size:15px}
+
+/* 底部TabBar */
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.tab-item{flex:1;text-align:center;padding:10px 0;cursor:pointer}
+.tab-icon{font-size:22px;display:block;margin-bottom:2px}
+.tab-label{font-size:10px;color:#9ca3af}
+.tab-item.active .tab-label{color:#2563eb}
+
+/* 模态框 */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:flex-end;transition:opacity .3s}
+.modal-overlay.hidden{opacity:0;pointer-events:none}
+.modal-content{background:#fff;width:100%;max-height:85vh;border-radius:20px 20px 0 0;overflow:hidden;transform:translateY(0);transition:transform .3s}
+.modal-overlay.hidden .modal-content{transform:translateY(100%)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #f3f4f6}
+.modal-title{font-size:17px;font-weight:600}
+.modal-close{background:#f3f4f6;border:none;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:20px;overflow-y:auto;max-height:calc(85vh - 60px)}
+
+/* 详情页 */
+.detail-section{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px}
+.detail-section-title{font-size:14px;font-weight:600;color:#1f2937;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f3f4f6}
+.detail-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f9fafb;font-size:14px}
+.detail-row:last-child{border-bottom:none}
+.detail-label{color:#6b7280}
+.detail-value{color:#1f2937;font-weight:500;text-align:right;max-width:60%}
+.detail-value.success{color:#16a34a}
+.detail-value.warning{color:#ea580c}
+.detail-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+
+/* 功能模块 */
+.func-section{margin-bottom:16px}
+.func-section-title{font-size:13px;color:#6b7280;margin-bottom:10px;padding-left:4px}
+
+/* 话术库 */
+.script-item{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.script-item:active{background:#f9fafb}
+.script-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.script-title{font-size:14px;font-weight:600;color:#1f2937}
+.script-type{font-size:11px;padding:3px 10px;background:#eff6ff;color:#2563eb;border-radius:8px}
+.script-preview{font-size:13px;color:#6b7283;line-height:1.5}
+
+/* 统计图表 */
+.chart-section{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px}
+.chart-title{font-size:14px;font-weight:600;color:#1f2937;margin-bottom:16px}
+.chart-row{display:flex;gap:8px;margin-bottom:12px}
+.chart-item{flex:1;background:#f9fafb;border-radius:12px;padding:14px;text-align:center}
+.chart-num{font-size:22px;font-weight:700;color:#1f2937;display:block}
+.chart-label{font-size:11px;color:#6b7280;margin-top:4px}
+
+/* 加载动画 */
+.loading{text-align:center;padding:40px;color:#9ca3af}
+.spinner{display:inline-block;width:24px;height:24px;border:3px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 按钮组 */
+.btn-group{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;padding:12px;border-radius:12px;font-size:14px;text-align:center;border:none;cursor:pointer;font-weight:500;transition:all .2s}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-success{background:#16a34a;color:#fff}
+.btn-outline{background:#f3f4f6;color:#4b5563}
+</style>
+</head>
+<body>
+
+<!-- 首页 -->
+<div id="page-home">
+  <div class="header">
+    <div class="header-top">
+      <div class="header-title">荐荐保险服务管家</div>
+      <div class="header-badge">v3.0</div>
+    </div>
+    <div class="header-sub">专业客户管理 · 智能服务助手</div>
+    <div class="stats-grid">
+      <div class="stat-card"><span class="stat-num" id="stat-total">37</span><span class="stat-label">总客户</span></div>
+      <div class="stat-card stat-a"><span class="stat-num" id="stat-a">12</span><span class="stat-label">A级</span></div>
+      <div class="stat-card stat-b"><span class="stat-num" id="stat-b">13</span><span class="stat-label">B级</span></div>
+      <div class="stat-card stat-c"><span class="stat-num" id="stat-c">12</span><span class="stat-label">C级</span></div>
+    </div>
+  </div>
+
+  <!-- 功能入口 -->
+  <div class="func-grid">
+    <div class="func-item" onclick="switchTab('clients')"><span class="func-icon">👥</span><span class="func-name">客户管理</span></div>
+    <div class="func-item" onclick="openScript()"><span class="func-icon">💬</span><span class="func-name">话术库</span></div>
+    <div class="func-item" onclick="openStats()"><span class="func-icon">📊</span><span class="func-name">数据看板</span></div>
+    <div class="func-item" onclick="openImport()"><span class="func-icon">📥</span><span class="func-name">批量导入</span></div>
+  </div>
+
+  <!-- 搜索 -->
+  <div class="search-section">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="搜索姓名、电话、地址..." oninput="filterClients()">
+    </div>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="filter-row">
+    <div class="filter-tag active" data-level="all" onclick="setFilter('all')">全部</div>
+    <div class="filter-tag" data-level="A" onclick="setFilter('A')">A级</div>
+    <div class="filter-tag" data-level="B" onClick="setFilter('B')">B级</div>
+    <div class="filter-tag" data-level="C" onClick="setFilter('C')">C级</div>
+  </div>
+
+  <!-- 客户列表 -->
+  <div class="client-list">
+    <div class="list-header">
+      <span>客户列表</span>
+      <span class="count-tag" id="client-count">37人</span>
+    </div>
+    <div id="client-list-container"></div>
+  </div>
+</div>
+
+<!-- 底部TabBar -->
+<div class="tabbar">
+  <div class="tab-item active" onclick="switchTab('home')"><span class="tab-icon">🏠</span><span class="tab-label">首页</span></div>
+  <div class="tab-item" onclick="switchTab('clients')"><span class="tab-icon">👥</span><span class="tab-label">客户</span></div>
+  <div class="tab-item" onclick="openScript()"><span class="tab-icon">💬</span><span class="tab-label">话术库</span></div>
+  <div class="tab-item" onclick="openStats()"><span class="tab-icon">📊</span><span class="tab-label">统计</span></div>
+</div>
+
+<!-- 客户详情模态框 -->
+<div class="modal-overlay hidden" id="detail-modal" onclick="if(event.target===this)closeDetail()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-title">客户详情</div>
+      <button class="modal-close" onclick="closeDetail()">×</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+  </div>
+</div>
+
+<!-- 话术库模态框 -->
+<div class="modal-overlay hidden" id="script-modal" onclick="if(event.target===this)closeScript()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">保险话术库</div>
+      <button class="modal-close" onclick="closeScript()">×</button>
+    </div>
+    <div class="modal-body" id="script-body"></div>
+  </div>
+</div>
+
+<!-- 数据看板模态框 -->
+<div class="modal-overlay hidden" id="stats-modal" onclick="if(event.target===this)closeStats()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">数据看板</div>
+      <button class="modal-close" onclick="closeStats()">×</button>
+    </div>
+    <div class="modal-body" id="stats-body"></div>
+  </div>
+</div>
+
+<!-- 批量导入模态框 -->
+<div class="modal-overlay hidden" id="import-modal" onclick="if(event.target===this)closeImport()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">批量导入</div>
+      <button class="modal-close" onclick="closeImport()">×</button>
+    </div>
+    <div class="modal-body" id="import-body">
+      <p style="color:#6b7280;font-size:14px;margin-bottom:16px;line-height:1.6;">
+        支持 Excel (.xlsx) 或 CSV 文件导入客户数据。<br>
+        请确保文件包含以下列：姓名、电话、区域、等级。
+      </p>
+      <div style="border:2px dashed #e5e7eb;border-radius:12px;padding:30px;text-align:center;margin-bottom:16px;">
+        <div style="font-size:40px;margin-bottom:10px;">📁</div>
+        <div style="font-size:14px;color:#4b5563;margin-bottom:4px;">点击选择文件</div>
+        <div style="font-size:12px;color:#9ca3af;">或拖拽文件到此处</div>
+        <input type="file" accept=".xlsx,.csv" style="position:absolute;inset:0;opacity:0;cursor:pointer;" onchange="handleFileImport(event)">
+      </div>
+      <div style="background:#eff6ff;border-radius:10px;padding:12px;font-size:13px;color:#2563eb;">
+        💡 提示：导入前请下载模板，确保数据格式正确
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== 数据（已脱敏） ==========
+const clients = [
+  {id:1,name:"张三",gender:"男",age:45,phone:"138****1234",area:"天心区",addr:"长沙市天心区xxx路xx号",level:"A",policyStatus:"已投保",needs:["重疾险","医疗险"],tags:["高净值","老客户"],source:"转介绍"},
+  {id:2,name:"李四",gender:"女",age:38,phone:"139****5678",area:"岳麓区",addr:"长沙市岳麓区xxx路xx号",level:"A",policyStatus:"已投保",needs:["年金险","寿险"],tags:["企业主"],source:"活动"},
+  {id:3,name:"王五",gender:"男",age:52,phone:"137****9012",area:"雨花区",addr:"长沙市雨花区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险"],tags:["国企领导"],source:"缘故"},
+  {id:4,name:"赵六",gender:"女",age:35,phone:"136****3456",area:"开福区",addr:"长沙市开福区xxx路xx号",level:"B",policyStatus:"待跟进",needs:["重疾险","意外险"],tags:["年轻妈妈"],source:"网络"},
+  {id:5,name:"钱七",gender:"男",age:48,phone:"135****7890",area:"芙蓉区",addr:"长沙市芙蓉区xxx路xx号",level:"B",policyStatus:"已投保",needs:["寿险","年金险"],tags:["私企业主"],source:"缘故"},
+  {id:6,name:"孙八",gender:"女",age:42,phone:"186****2345",area:"天心区",addr:"长沙市天心区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险","重疾险"],tags:["公务员"],source:"转介绍"},
+  {id:7,name:"周九",gender:"男",age:55,phone:"187****6789",area:"岳麓区",addr:"长沙市岳麓区xxx路xx号",level:"B",policyStatus:"待投保",needs:["重疾险","医疗险"],tags:["退休人员"],source:"缘故"},
+  {id:8,name:"吴十",gender:"女",age:33,phone:"188****0123",area:"雨花区",addr:"长沙市雨花区xxx路xx号",level:"C",policyStatus:"已投保",needs:["意外险"],tags:["职场新人"],source:"网络"},
+  {id:9,name:"郑一",gender:"男",age:60,phone:"189****4567",area:"开福区",addr:"长沙市开福区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险","寿险"],tags:["退休干部"],source:"缘故"},
+  {id:10,name:"冯二",gender:"女",age:40,phone:"158****8901",area:"芙蓉区",addr:"长沙市芙蓉区xxx路xx号",level:"B",policyStatus:"待跟进",needs:["年金险","重疾险"],tags:["教师"],source:"活动"},
+  {id:11,name:"陈三",gender:"男",age:47,phone:"159****2345",area:"天心区",addr:"长沙市天心区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险"],tags:["企业高管"],source:"缘故"},
+  {id:12,name:"褚四",gender:"女",age:36,phone:"150****6789",area:"岳麓区",addr:"长沙市岳麓区xxx路xx号",level:"B",policyStatus:"已投保",needs:["重疾险","医疗险"],tags:["医生"],source:"转介绍"},
+  {id:13,name:"卫五",gender:"男",age:53,phone:"151****0123",area:"雨花区",addr:"长沙市雨花区xxx路xx号",level:"A",policyStatus:"已投保",needs:["寿险","年金险"],tags:["私企业主"],source:"缘故"},
+  {id:14,name:"蒋六",gender:"女",age:39,phone:"152****4567",area:"开福区",addr:"长沙市开福区xxx路xx号",level:"B",policyStatus:"待投保",needs:["重疾险","意外险"],tags:["白领"],source:"网络"},
+  {id:15,name:"沈七",gender:"男",age:58,phone:"153****8901",area:"芙蓉区",addr:"长沙市芙蓉区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险","重疾险"],tags:["退休人员"],source:"缘故"},
+  {id:16,name:"韩八",gender:"女",age:41,phone:"154****2345",area:"天心区",addr:"长沙市天心区xxx路xx号",level:"B",policyStatus:"已投保",needs:["年金险"],tags:["家庭主妇"],source:"活动"},
+  {id:17,name:"杨九",gender:"男",age:44,phone:"155****6789",area:"岳麓区",addr:"长沙市岳麓区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险","寿险"],tags:["律师"],source:"转介绍"},
+  {id:18,name:"朱十",gender:"女",age:37,phone:"156****0123",area:"雨花区",addr:"长沙市雨花区xxx路xx号",level:"C",policyStatus:"已投保",needs:["意外险"],tags:["职场新人"],source:"网络"},
+  {id:19,name:"秦一",gender:"男",age:50,phone:"157****4567",area:"开福区",addr:"长沙市开福区xxx路xx号",level:"A",policyStatus:"已投保",needs:["重疾险","医疗险"],tags:["企业主"],source:"缘故"},
+  {id:20,name:"尤二",gender:"女",age:43,phone:"166****8901",area:"芙蓉区",addr:"长沙市芙蓉区xxx路xx号",level:"B",policyStatus:"待跟进",needs:["寿险","年金险"],tags:["教师"],source:"活动"},
+  {id:21,name:"许三",gender:"男",age:56,phone:"167****2345",area:"天心区",addr:"长沙市天心区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险"],tags:["退休干部"],source:"缘故"},
+  {id:22,name:"何四",gender:"女",age:34,phone:"168****6789",area:"岳麓区",addr:"长沙市岳麓区xxx路xx号",level:"C",policyStatus:"已投保",needs:["意外险","重疾险"],tags:["年轻妈妈"],source:"转介绍"},
+  {id:23,name:"吕五",gender:"男",age:49,phone:"170****0123",area:"雨花区",addr:"长沙市雨花区xxx路xx号",level:"B",policyStatus:"已投保",needs:["医疗险","年金险"],tags:["工程师"],source:"缘故"},
+  {id:24,name:"施六",gender:"女",age:46,phone:"171****4567",area:"开福区",addr:"长沙市开福区xxx路xx号",level:"A",policyStatus:"已投保",needs:["重疾险","医疗险"],tags:["医生"],source:"活动"},
+  {id:25,name:"张七",gender:"男",age:61,phone:"172****8901",area:"芙蓉区",addr:"长沙市芙蓉区xxx路xx号",level:"B",policyStatus:"待投保",needs:["寿险","医疗险"],tags:["退休人员"],source:"缘故"},
+  {id:26,name:"孔八",gender:"女",age:32,phone:"173****2345",area:"天心区",addr:"长沙市天心区xxx路xx号",level:"C",policyStatus:"已投保",needs:["意外险"],tags:["职场新人"],source:"网络"},
+  {id:27,name:"曹九",gender:"男",age:54,phone:"174****6789",area:"岳麓区",addr:"长沙市岳麓区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险","重疾险"],tags:["企业高管"],source:"转介绍"},
+  {id:28,name:"严十",gender:"女",age:40,phone:"175****0123",area:"雨花区",addr:"长沙市雨花区xxx路xx号",level:"B",policyStatus:"已投保",needs:["年金险","重疾险"],tags:["家庭主妇"],source:"缘故"},
+  {id:29,name:"华一",gender:"男",age:57,phone:"176****4567",area:"开福区",addr:"长沙市开福区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险"],tags:["退休干部"],source:"活动"},
+  {id:30,name:"金二",gender:"女",age:38,phone:"177****8901",area:"芙蓉区",addr:"长沙市芙蓉区xxx路xx号",level:"C",policyStatus:"待跟进",needs:["重疾险"],tags:["白领"],source:"网络"},
+  {id:31,name:"魏三",gender:"男",age:51,phone:"178****2345",area:"天心区",addr:"长沙市天心区xxx路xx号",level:"A",policyStatus:"已投保",needs:["寿险","医疗险"],tags:["私企业主"],source:"缘故"},
+  {id:32,name:"陶四",gender:"女",age:44,phone:"179****6789",area:"岳麓区",addr:"长沙市岳麓区xxx路xx号",level:"B",policyStatus:"已投保",needs:["重疾险","医疗险"],tags:["律师"],source:"转介绍"},
+  {id:33,name:"姜五",gender:"男",age:59,phone:"180****0123",area:"雨花区",addr:"长沙市雨花区xxx路xx号",level:"B",policyStatus:"待投保",needs:["医疗险","重疾险"],tags:["退休人员"],source:"缘故"},
+  {id:34,name:"戚六",gender:"女",age:36,phone:"181****4567",area:"开福区",addr:"长沙市开福区xxx路xx号",level:"C",policyStatus:"已投保",needs:["意外险","医疗险"],tags:["年轻妈妈"],source:"活动"},
+  {id:35,name:"谢七",gender:"男",age:47,phone:"182****8901",area:"芙蓉区",addr:"长沙市芙蓉区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险","重疾险"],tags:["公务员"],source:"缘故"},
+  {id:36,name:"邹八",gender:"女",age:41,phone:"183****2345",area:"天心区",addr:"长沙市天心区xxx路xx号",level:"B",policyStatus:"已投保",needs:["年金险","寿险"],tags:["教师"],source:"转介绍"},
+  {id:37,name:"柏九",gender:"男",age:63,phone:"184****6789",area:"岳麓区",addr:"长沙市岳麓区xxx路xx号",level:"A",policyStatus:"已投保",needs:["医疗险","寿险"],tags:["退休领导"],source:"缘故"}
+];
+
+const scripts = [
+  {type:"重疾险",title:"重疾险开场话术",content:"王先生您好，我是您的专属保险顾问。之前跟您聊过重疾险的话题，今天想跟您详细介绍一下。现代人生活节奏快、压力大，重疾发病率越来越高，一旦患病，治疗费用加上收入中断的损失，对家庭打击很大。重疾险就是解决这个问题——确诊即赔付，这笔钱您可以自由支配，既能支付医疗费，也能维持家庭正常生活。您看您平时工作忙，健康保障这方面有没有提前规划过？"},
+  {type:"医疗险",title:"医疗险需求挖掘",content:"李女士您好！很多人以为有医保就够了，其实医保只能报销一部分，还有很多进口药、自费项目和高端治疗不在报销范围内。一场大病下来，医保能覆盖的可能只有50%-60%，剩下的都得自己掏。建议您考虑配置一份百万医疗险，每年几百块钱就能获得几百万的保障，医保报销完剩余的部分基本都能报。您觉得这个方案怎么样？"},
+  {type:"年金险",title:"年金险教育金切入",content:"张先生，现在养一个孩子从出生到大学毕业，少说也要几十万的教育费用，越早规划越轻松。年金险就像给孩子建立一个专属的教育金账户，强制储蓄、专款专用，而且有稳定收益。到孩子升学、留学或者创业的时候，这笔钱刚好能用上。我们来算算，按您的预算，其实每月只需存一点点就够了。"},
+  {type:"寿险",title:"定期寿险促成话术",content:"您是家里的经济支柱，万一发生意外，整个家庭都会陷入困境。定期寿险保费低、保额高，每年一千多就能保100万，留爱不留债。您现在是家庭的上升期，责任最重，这个阶段最需要保障。等孩子长大了、房贷还完了，保障需求自然就下降了。这种保险非常适合您现在的家庭情况。"},
+  {type:"增额寿",title:"增额终身寿财富传承",content:"陈总，我理解您生意上资金充裕，想做长期稳健的资产规划。增额终身寿是一个非常不错的选择——保额逐年递增，现金价值也稳步增长，既可以作为孩子的教育金、自己的养老金，也可以作为财富传承的工具。最重要的是，它的安全性极高，受法律保护，完美契合您这种追求稳健增值的需求。"},
+  {type:"通用",title:"处理拒绝"太贵了"",content:"我理解您觉得保费支出需要考虑。其实保险不是消费，是风险管理的工具。您想想，每年拿出一点点钱，就能撬动几十万的保障杠杆，这比存银行划算多了。而且保险产品有很多价位，我们可以根据您的实际情况，量身定制一个既符合需求又在预算内的方案。您看我们是先看看计划书，还是我再给您详细讲解一下不同产品的区别？"}
+];
+
+let currentFilter = 'all';
+
+// ========== 初始化 ==========
+document.addEventListener('DOMContentLoaded', function() {
+  renderClients(clients);
+  updateStats();
+});
+
+// ========== 客户列表 ==========
+function renderClients(list) {
+  const container = document.getElementById('client-list-container');
+  document.getElementById('client-count').textContent = list.length + '人';
+  
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">暂无匹配的客户</div></div>';
+    return;
+  }
+  
+  container.innerHTML = list.map(c => `
+    <div class="client-card" onclick="showDetail(${c.id})">
+      <div class="card-header">
+        <div class="client-info">
+          <div class="avatar ${c.gender==='女'?'female':'male'}">${c.name.substr(0,1)}</div>
+          <div>
+            <div class="client-name">${c.name}</div>
+            <div class="client-meta">${c.gender} · ${c.age}岁 · ${c.area}</div>
+          </div>
+        </div>
+        <div class="level-badge level-${c.level}">${c.level}级</div>
+      </div>
+      <div class="card-info">
+        <div class="info-row"><span class="info-icon">📱</span><span>${c.phone}</span></div>
+        <div class="info-row"><span class="info-icon">📍</span><span>${c.area}</span></div>
+      </div>
+      <div class="card-tags">
+        ${c.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+        ${c.needs.map(n => `<span class="tag need">${n}</span>`).join('')}
+        <span class="tag source">${c.source}</span>
+      </div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="action-btn btn-call" onclick="callClient('${c.phone}')">📞 拨打</button>
+        <button class="action-btn btn-nav" onclick="navClient('${c.addr}')">🗺️ 导航</button>
+        <button class="action-btn btn-detail" onclick="showDetail(${c.id})">👤 详情</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterClients() {
+  const kw = document.getElementById('search-input').value.trim().toLowerCase();
+  let list = clients;
+  if (currentFilter !== 'all') list = list.filter(c => c.level === currentFilter);
+  if (kw) list = list.filter(c => c.name.includes(kw) || c.phone.includes(kw) || c.area.includes(kw));
+  renderClients(list);
+}
+
+function setFilter(level) {
+  currentFilter = level;
+  document.querySelectorAll('.filter-tag').forEach(t => {
+    t.classList.toggle('active', t.dataset.level === level);
+  });
+  filterClients();
+}
+
+// ========== 客户详情 ==========
+function showDetail(id) {
+  const c = clients.find(x => x.id === id);
+  if (!c) return;
+  
+  document.getElementById('detail-title').textContent = c.name + ' - 客户详情';
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-section">
+      <div class="detail-section-title">基本信息</div>
+      <div class="detail-row"><span class="detail-label">姓名</span><span class="detail-value">${c.name}</span></div>
+      <div class="detail-row"><span class="detail-label">性别</span><span class="detail-value">${c.gender}</span></div>
+      <div class="detail-row"><span class="detail-label">年龄</span><span class="detail-value">${c.age}岁</span></div>
+      <div class="detail-row"><span class="detail-label">联系电话</span><span class="detail-value">${c.phone}</span></div>
+      <div class="detail-row"><span class="detail-label">所在区域</span><span class="detail-value">${c.area}</span></div>
+      <div class="detail-row"><span class="detail-label">详细地址</span><span class="detail-value">${c.addr}</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">保险需求</div>
+      <div class="detail-row"><span class="detail-label">需求险种</span><div class="detail-tags">${c.needs.map(n=>`<span class="tag need">${n}</span>`).join('')}</div></div>
+      <div class="detail-row"><span class="detail-label">保单状态</span><span class="detail-value ${c.policyStatus==='已投保'?'success':'warning'}">${c.policyStatus}</span></div>
+      <div class="detail-row"><span class="detail-label">客户等级</span><span class="detail-value"><span class="level-badge level-${c.level}">${c.level}级</span></span></div>
+      <div class="detail-row"><span class="detail-label">客户来源</span><span class="detail-value">${c.source}</span></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">客户标签</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-success" onclick="callClient('${c.phone}')">📞 拨打电话</button>
+      <button class="btn btn-primary" onclick="navClient('${c.addr}')">🗺️ 地图导航</button>
+    </div>
+  `;
+  openModal('detail-modal');
+}
+
+function closeDetail() { document.getElementById('detail-modal').classList.add('hidden'); }
+
+// ========== 打电话 & 导航 ==========
+function callClient(phone) {
+  window.location.href = 'tel:' + phone;
+}
+
+function navClient(addr) {
+  const encoded = encodeURIComponent(addr);
+  window.location.href = 'https://uri.amap.com/search?keyword=' + encoded + '&city=长沙&src=uri';
+}
+
+// ========== 话术库 ==========
+function openScript() {
+  document.getElementById('script-body').innerHTML = scripts.map(s => `
+    <div class="script-item" onclick="toggleScript(this)">
+      <div class="script-header">
+        <span class="script-title">${s.title}</span>
+        <span class="script-type">${s.type}</span>
+      </div>
+      <div class="script-content" style="display:none;font-size:13px;color:#4b5563;line-height:1.7;margin-top:8px;">${s.content}</div>
+    </div>
+  `).join('');
+  openModal('script-modal');
+}
+
+function toggleScript(el) {
+  const content = el.querySelector('.script-content');
+  const allContents = document.querySelectorAll('.script-content');
+  allContents.forEach(c => c.style.display = 'none');
+  content.style.display = content.style.display === 'none' ? 'block' : 'none';
+}
+
+function closeScript() { document.getElementById('script-modal').classList.add('hidden'); }
+
+// ========== 数据看板 ==========
+function openStats() {
+  const aList = clients.filter(c => c.level === 'A');
+  const bList = clients.filter(c => c.level === 'B');
+  const cList = clients.filter(c => c.level === 'C');
+  const insured = clients.filter(c => c.policyStatus === '已投保').length;
+  const pending = clients.filter(c => c.policyStatus === '待跟进' || c.policyStatus === '待投保').length;
+  
+  document.getElementById('stats-body').innerHTML = `
+    <div class="chart-section">
+      <div class="chart-title">客户等级分布</div>
+      <div class="chart-row">
+        <div class="chart-item"><span class="chart-num">${aList.length}</span><span class="chart-label">A级（高意向）</span></div>
+        <div class="chart-item"><span class="chart-num">${bList.length}</span><span class="chart-label">B级（潜在客户）</span></div>
+        <div class="chart-item"><span class="chart-num">${cList.length}</span><span class="chart-label">C级（观望客户）</span></div>
+      </div>
+    </div>
+    <div class="chart-section">
+      <div class="chart-title">投保状态概览</div>
+      <div class="chart-row">
+        <div class="chart-item"><span class="chart-num" style="color:#16a34a">${insured}</span><span class="chart-label">已投保</span></div>
+        <div class="chart-item"><span class="chart-num" style="color:#ea580c">${pending}</span><span class="chart-label">待跟进</span></div>
+      </div>
+    </div>
+    <div class="chart-section">
+      <div class="chart-title">A级客户TOP5</div>
+      ${aList.slice(0,5).map(c=>`
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f9fafb;font-size:14px;">
+          <span>${c.name} <span style="color:#9ca3af;font-size:12px;">${c.area}</span></span>
+          <span class="tag need" style="font-size:11px;">${c.needs[0]}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  openModal('stats-modal');
+}
+
+function closeStats() { document.getElementById('stats-modal').classList.add('hidden'); }
+
+// ========== 批量导入 ==========
+function openImport() { openModal('import-modal'); }
+function closeImport() { document.getElementById('import-modal').classList.add('hidden'); }
+
+function handleFileImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  alert('文件已选择：' + file.name + '\n\n正式版将支持Excel数据导入功能，请期待更新！');
+}
+
+// ========== Tab切换 ==========
+function switchTab(tab) {
+  document.querySelectorAll('.tab-item').forEach((t,i) => {
+    t.classList.toggle('active', (tab==='home'&&i===0) || (tab==='clients'&&i===1));
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+  if (tab === 'clients') filterClients();
+}
+
+// ========== 工具 ==========
+function openModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = clients.length;
+  document.getElementById('stat-a').textContent = clients.filter(c=>c.level==='A').length;
+  document.getElementById('stat-b').textContent = clients.filter(c=>c.level==='B').length;
+  document.getElementById('stat-c').textContent = clients.filter(c=>c.level==='C').length;
+}
+</script>
+</body>
+</html>
